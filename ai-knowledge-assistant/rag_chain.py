@@ -41,6 +41,11 @@ def answer_question(
     # 2. Retrieve the most relevant chunks.
     results = store.search(query_embedding, top_k=3)
 
+    print(f"\n===== RETRIEVAL RESULTS =====")
+    for rank, (document, score) in enumerate(results, start =1):
+        print(f"Ranks : {rank} | Similarity: {score:.4f}")
+        print(f"Document: {document}\n")
+
     # 3. Handle an empty retrieval result.
     if not results:
         return "I couldn't find relevant information in the documents."
