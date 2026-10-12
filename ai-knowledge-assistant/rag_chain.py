@@ -55,7 +55,7 @@ def answer_question(
     print(f"\nBest similarity score: {best_score:.4f}")
 
     if best_score < MIN_RELEVANCE_SCORE:
-        print(f"I couldn't find relevant information in the documents.")
+        return f"I couldn't find relevant information in the documents."
 
     print(f"\n===== RETRIEVAL RESULTS =====")
     for rank, (document, score, metadata) in enumerate(results, start=1):
