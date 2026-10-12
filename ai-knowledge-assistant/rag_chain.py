@@ -13,7 +13,7 @@ load_dotenv()
 
 MODEL_NAME = "openai/gpt-oss-20b"
 DOCUMENT_PATH = "documents/neural_networks_sample.pdf"
-
+MIN_RELEVANCE_SCORE = 0.30
 
 def build_knowledge_base() -> VectorStore:
     """Load the PDF and index its Q&A entries."""
@@ -41,14 +41,22 @@ def answer_question(
     # 2. Retrieve the most relevant chunks.
     results = store.search(query_embedding, top_k=3)
 
+    # 3. Handle an empty retrieval result.
+    if not results:
+        return "I couldn't find relevant information in the documents."
+    
+    best_score = results[0][1]
+    print(f"\nBest similarity score: {best_score:.4f}")
+
+    if best_score < MIN_RELEVANCE_SCORE:
+        print(f"I couldn't find relevant information in the documents.")
+        
     print(f"\n===== RETRIEVAL RESULTS =====")
     for rank, (document, score) in enumerate(results, start =1):
         print(f"Ranks : {rank} | Similarity: {score:.4f}")
         print(f"Document: {document}\n")
 
-    # 3. Handle an empty retrieval result.
-    if not results:
-        return "I couldn't find relevant information in the documents."
+
 
     # 4. Build the context from retrieved chunks.
     context = build_context(results)
