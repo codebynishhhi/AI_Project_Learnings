@@ -11,20 +11,23 @@ class VectorStore :
     def __init__(self):
         self.documents = []
         self.embeddings = []
+        self.metadata = []
 
-    def add(self, text: str, embedding : np.ndarray):
+    def add(self, text: str, embedding : np.ndarray, metadata: dict|None = None) -> None:
         # documents stores the original text chunks.
         # embeddings stores the corresponding vectors.
         # add() inserts one text/vector pair.
         self.documents.append(text)
         self.embeddings.append(embedding)
+        self.metadata.append(metadata or {})
 
     def search(self, query_embedding: np.ndarray, top_k: int = 5) -> list[tuple[str, float]]:
         if top_k <= 0:
             raise ValueError("top_k must be positive")
         
+        # once we perform the search the results will be a list of tuples containing the document, its similarity score & metadata.
         results = []
-        for document, embedding in zip(self.documents, self.embeddings):
+        for document, embedding, metadata in zip(self.documents, self.embeddings, self.metadata):
             denominator = (
                 np.linalg.norm(query_embedding)
                 * np.linalg.norm(embedding)
@@ -36,15 +39,19 @@ class VectorStore :
                 similarity = float(
                     np.dot(query_embedding, embedding) / denominator
                 )
-            results.append((document, similarity))
+            results.append((document, similarity, metadata))
 
         # Sort by similarity (descending) and return top_k
         results.sort(key=lambda x: x[1], reverse=True)
         return results[:top_k]
     
-    def add_text(self, text: str) -> None:
+    def add_text(self, text: str, source:str = "unknown", chunk_id : str = "unknown") -> None:
         embedding = generate_embedding(text)
-        self.add(text, embedding)
+        metadata = {
+            "source": source,
+            "chunk_id": chunk_id
+        }
+        self.add(text, embedding, metadata)
 
 
 # TIEING UP PDF WITH VECTOR STORE TO - 

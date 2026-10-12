@@ -1,12 +1,12 @@
-def build_context(retrieved_chunks : list[tuple[str, float]]) -> str:
+def build_context(retrieved_chunks : list[tuple[str, float, dict]]) -> str:
     """
     Builds a context string from the retrieved chunks.
     Each result contains:
         - document: retrieved text
         - score: similarity score
+        - metadata: additional information about the chunk
     Args:
         retrieved_chunks (list[tuple[str, float]]): A list of tuples containing the text chunks and their similarity scores.
-
     Returns:
         str: A formatted context string.
     """
@@ -16,9 +16,12 @@ def build_context(retrieved_chunks : list[tuple[str, float]]) -> str:
     
     context_parts = []
 
-    for rank, (document, score) in enumerate(retrieved_chunks, start=1):
+    for rank, (document, score, metadata) in enumerate(retrieved_chunks, start=1):
+        source = metadata.get("source", "unknown")
+        chunk_id = metadata.get("chunk_id", "unknown")
+        
         context_parts.append(
-            f"Rank {rank}:\nSimilarity: {score:.4f}\nDocument: {document}\n"
+            f"Rank {rank}:\nSimilarity: {score:.4f}\nDocument: {document}\n | Source : {source} | Chunk ID: {chunk_id}"
         )
     return "".join(context_parts)
 
