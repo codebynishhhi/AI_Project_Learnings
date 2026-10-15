@@ -5,25 +5,29 @@ from embeddings import generate_embedding
 from loader import load_pdf_file
 from chunker import split_into_paragraphs, create_chunks
 from embeddings import generate_embedding
+from qa_chunker import split_qa_entries
 
 class VectorStore :
     def __init__(self):
         self.documents = []
         self.embeddings = []
+        self.metadata = []
 
-    def add(self, text: str, embedding : np.ndarray):
+    def add(self, text: str, embedding : np.ndarray, metadata: dict|None = None) -> None:
         # documents stores the original text chunks.
         # embeddings stores the corresponding vectors.
         # add() inserts one text/vector pair.
         self.documents.append(text)
         self.embeddings.append(embedding)
+        self.metadata.append(metadata or {})
 
     def search(self, query_embedding: np.ndarray, top_k: int = 5) -> list[tuple[str, float]]:
         if top_k <= 0:
             raise ValueError("top_k must be positive")
         
+        # once we perform the search the results will be a list of tuples containing the document, its similarity score & metadata.
         results = []
-        for document, embedding in zip(self.documents, self.embeddings):
+        for document, embedding, metadata in zip(self.documents, self.embeddings, self.metadata):
             denominator = (
                 np.linalg.norm(query_embedding)
                 * np.linalg.norm(embedding)
@@ -35,15 +39,19 @@ class VectorStore :
                 similarity = float(
                     np.dot(query_embedding, embedding) / denominator
                 )
-            results.append((document, similarity))
+            results.append((document, similarity, metadata))
 
         # Sort by similarity (descending) and return top_k
         results.sort(key=lambda x: x[1], reverse=True)
         return results[:top_k]
     
-    def add_text(self, text: str) -> None:
+    def add_text(self, text: str, source:str = "unknown", chunk_id : str = "unknown") -> None:
         embedding = generate_embedding(text)
-        self.add(text, embedding)
+        metadata = {
+            "source": source,
+            "chunk_id": chunk_id
+        }
+        self.add(text, embedding, metadata)
 
 
 # TIEING UP PDF WITH VECTOR STORE TO - 
@@ -58,12 +66,9 @@ if __name__ == "__main__":
     # 1. load and clean the pdf 
     text = load_pdf_file(pdf_path)
 
-    # 2. split the text into paragraphs
-    paragraphs = split_into_paragraphs(text)
-
-    # 3. create size aware chunks and its embeddings and store in vector store
-    chunks = create_chunks(paragraphs, max_characters=500, overlap_characters=20)
-    print(f"Total chunks created: {len(chunks)}")
+    # 2. split the text into qa_chunker based on Q&A entries
+    chunks = split_qa_entries(text)
+    print(f"Total Q&A chunks: {len(chunks)}")
 
     for chunk in chunks:
         store.add_text(chunk)
@@ -79,15 +84,13 @@ if __name__ == "__main__":
     # similarity search in the vector store
     results = store.search(query_embedding=query_embedding, top_k=3)
 
-    print(f"nishi results =======>", results)
-
     print(f"\nQuery: {query}")
-    print("\n===== SEARCH RESULTS =====")
+    print("\n===== retrieval RESULTS =====")
 
-    for document, score in results:
-        print(f"\nSimilarity: {score:.4f}")
+    for rank, (document, score) in enumerate(results, start=1):
+        print(f"\nRank {rank}:")
+        print(f"Similarity: {score:.4f}")
         print(f"Document: {document}")
-
 
 
 
