@@ -34,60 +34,92 @@ def build_knowledge_base() -> VectorStore:
     return store
 
 
+
+import math
+from numbers import Real
+
+
 def answer_question(
     question: str,
     store: VectorStore,
     client: Groq,
 ) -> str:
-    """Retrieve context and generate an answer using Groq."""
+    """Retrieve relevant context and generate a grounded answer."""
 
-    # check if we received a valid question or not first 
-    if not question or not question.strip():
+    # 1. Validate input
+    if not isinstance(question, str) or not question.strip():
         return "Please enter a question."
 
     if len(question) > 200:
         return "Question is too long. Please keep it under 200 characters!"
-    
 
-    # 1. Convert the question into an embedding.
-    query_embedding = generate_embedding(question)
+    # 2. Generate the query embedding
+    try:
+        query_embedding = generate_embedding(question)
+    except Exception:
+        return "The retrieval service is temporarily unavailable."
 
-    # 2. Retrieve the most relevant chunks.
-    results = store.search(query_embedding, top_k=3)
+    # 3. Retrieve relevant documents
+    try:
+        results = store.search(query_embedding, top_k=3)
+    except Exception:
+        return "The retrieval service is temporarily unavailable."
 
-    # 3. Handle an empty retrieval result.
     if not results:
         return "I couldn't find relevant information in the documents."
-    
-    best_score = results[0][1]
+
+    # Validate the retrieval result contract:
+    # (document, similarity_score, metadata)
+    if not isinstance(results, (list, tuple)):
+        return "The retrieval service is temporarily unavailable."
+
+    for result in results:
+        if not isinstance(result, (list, tuple)) or len(result) != 3:
+            return "The retrieval service is temporarily unavailable."
+
+        document, score, metadata = result
+
+        if not isinstance(document, str) or not isinstance(metadata, dict):
+            return "The retrieval service is temporarily unavailable."
+
+        if (
+            isinstance(score, bool)
+            or not isinstance(score, Real)
+            or not math.isfinite(float(score))
+        ):
+            return "The retrieval service is temporarily unavailable."
+
+    best_score = float(results[0][1])
     print(f"\nBest similarity score: {best_score:.4f}")
 
     if best_score < MIN_RELEVANCE_SCORE:
-        return f"I couldn't find relevant information in the documents."
+        return "I couldn't find relevant information in the documents."
 
-    print(f"\n===== RETRIEVAL RESULTS =====")
+    # Optional diagnostics: keep these for learning/debugging.
+    print("\n===== RETRIEVAL RESULTS =====")
     for rank, (document, score, metadata) in enumerate(results, start=1):
-        print(f"Rank {rank} | Score: {score:.4f}")
+        print(f"Rank {rank} | Score: {float(score):.4f}")
         print(f"Source: {metadata.get('source', 'unknown')}")
         print(f"Chunk ID: {metadata.get('chunk_id', 'unknown')}")
         print(document)
 
+    # 4. Build the context
+    try:
+        context = build_context(results)
+    except Exception:
+        return "The retrieval service is temporarily unavailable."
 
-
-    # 4. Build the context from retrieved chunks.
-    context = build_context(results)
-
-    if not context.strip():
+    if not isinstance(context, str) or not context.strip():
         return "I couldn't find relevant information in the documents."
 
-    # 5. Build the RAG prompt.
+    # 5. Build the prompt
     prompt = build_rag_prompt(
         question=question,
         context=context,
     )
 
+    # 6. Call the LLM
     try:
-        # 6. Ask the LLM to generate an answer.
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
@@ -102,10 +134,27 @@ def answer_question(
     except Exception:
         return "The AI service is temporarily unavailable."
 
-    answer = response.choices[0].message.content
+    # 7. Safely extract the model's answer
+    try:
+        choices = response.choices
 
-    if not answer:
+        if not choices:
+            return "The AI service is temporarily unavailable."
+
+        answer = choices[0].message.content
+
+    except (AttributeError, IndexError, TypeError):
         return "The AI service is temporarily unavailable."
+
+    # 8. Validate the answer
+    if answer is None:
+        return "The model did not return an answer."
+
+    if not isinstance(answer, str):
+        return "The AI service is temporarily unavailable."
+
+    if not answer.strip():
+        return "The model did not return an answer."
 
     return answer.strip()
 
