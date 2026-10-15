@@ -22,14 +22,16 @@ def build_knowledge_base() -> VectorStore:
 
     store = VectorStore()
 
+    # dynamically identifuy the document name from path for source citation
+    source_name = Path(DOCUMENT_PATH).name
+
     for index, chunk in enumerate(chunks, start = 1):
         question_match = re.match(r"Q(\d+):", chunk)
         chunk_id = question_match.group(1) if question_match else f"chunk_{index}"
 
-    # dynamically identifuy the document name from path for source citation
-    source_name = Path(DOCUMENT_PATH).name
-
-    store.add_text(chunk, source=source_name, chunk_id=chunk_id)
+        # each chunk must be added to the store inside the loop.
+        #  Otherwise, your retrieval and answer-quality evaluations might operate on an incomplete knowledge base.
+        store.add_text(chunk, source=source_name, chunk_id=chunk_id)
 
     return store
 

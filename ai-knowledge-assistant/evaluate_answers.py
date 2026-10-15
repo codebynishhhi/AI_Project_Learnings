@@ -41,3 +41,33 @@ def score_answer(
         return 0.0
 
     return 0.5
+
+
+from rag_chain import answer_question
+
+
+def run_answer_evaluation(
+    dataset,
+    store,
+    client,
+    answer_function=answer_question,
+):
+    results = []
+
+    for case in dataset:
+        generated_answer = answer_function(
+            case["question"],
+            store,
+            client,
+        )
+
+        results.append({
+            "id": case["id"],
+            "question": case["question"],
+            "generated_answer": generated_answer,
+            "reference_answer": case["reference_answer"],
+            "required_facts": case["required_facts"],
+            "answerable": case["answerable"],
+        })
+
+    return results

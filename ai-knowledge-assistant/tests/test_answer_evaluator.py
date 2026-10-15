@@ -1,7 +1,7 @@
 
 import pytest
 
-from answer_evaluator import score_answer
+from evaluate_answers import score_answer
 
 
 def test_fully_correct_answer_scores_one():
