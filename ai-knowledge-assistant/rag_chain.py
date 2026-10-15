@@ -41,6 +41,14 @@ def answer_question(
 ) -> str:
     """Retrieve context and generate an answer using Groq."""
 
+    # check if we received a valid question or not first 
+    if not question or not question.strip():
+        return "Please enter a question."
+
+    if len(question) > 200:
+        return "Question is too long. Please keep it under 200 characters!"
+    
+
     # 1. Convert the question into an embedding.
     query_embedding = generate_embedding(question)
 
@@ -78,23 +86,26 @@ def answer_question(
         context=context,
     )
 
-    # 6. Ask the LLM to generate an answer.
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        temperature=0.2,
-        max_completion_tokens=500,
-    )
+    try:
+        # 6. Ask the LLM to generate an answer.
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            temperature=0.2,
+            max_completion_tokens=500,
+        )
+    except Exception:
+        return "The AI service is temporarily unavailable."
 
     answer = response.choices[0].message.content
 
     if not answer:
-        return "The model did not return an answer."
+        return "The AI service is temporarily unavailable."
 
     return answer.strip()
 
@@ -126,3 +137,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
