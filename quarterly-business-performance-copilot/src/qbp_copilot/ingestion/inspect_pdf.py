@@ -40,6 +40,8 @@ def inspect_pdf(pdf_path : str | Path) -> dict:
                 table_previews.append({
                     "table_number" : table_index,
                     "row_count" : len(rows),
+                    # # Full extracted table
+                    "rows":rows,
                     "column_count": max(
                 (len(row) for row in rows),
                 default=0,
