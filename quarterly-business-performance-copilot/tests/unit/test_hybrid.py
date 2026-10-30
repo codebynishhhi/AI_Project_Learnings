@@ -13,7 +13,7 @@ from qbp_copilot.retrieval.hybrid_retriever import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 vectors, metadata = load_index(
     ROOT / "artifacts" / "embeddings"
