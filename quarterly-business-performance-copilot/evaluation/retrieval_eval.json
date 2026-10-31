@@ -1,0 +1,33 @@
+[
+  {
+    "question_id": "Q1",
+    "question": "What was NVIDIA's quarterly revenue?",
+    "relevant_chunk_ids": ["NVIDIA_Q2_FY2027_Results_chunk_0000"]
+  },
+  {
+    "question_id": "Q2",
+    "question": "What were the main operating expenses?",
+    "relevant_chunk_ids": ["NVIDIA_Q2_FY2027_Results_chunk_0011"]
+  },
+  {
+    "question_id": "Q3",
+    "question": "What was Data Center revenue?",
+    "relevant_chunk_ids": ["NVIDIA_Q2_FY2027_Results_chunk_0000"]
+  },
+  {
+    "question_id": "Q4",
+    "question": "What were GAAP and non-GAAP gross margins?",
+    "relevant_chunk_ids": ["NVIDIA_Q2_FY2027_Results_chunk_0000",  "NVIDIA_Q2_FY2027_Results_chunk_0016"]
+  },
+  {
+    "question_id": "Q5",
+    "question": "What was net income for the quarter?",
+    "relevant_chunk_ids": ["NVIDIA_Q2_FY2027_Results_chunk_0011"]
+  },
+  {
+    "question_id": "Q6",
+    "question": "What is NVIDIA's revenue outlook for the next quarter?",
+    "relevant_chunk_ids": ["NVIDIA_Q2_FY2027_Results_chunk_0003"]
+  }
+]
+
