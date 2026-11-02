@@ -1,0 +1,58 @@
+
+{
+  "experiment_name": "dense_baseline_v1",
+  "retrieval_method": "dense",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "top_k": 3,
+  "evaluation_questions": 6,
+  "metrics": {
+    "recall_at_3": 0.9167,
+    "mrr": 0.8056,
+    "hit_at_1": 0.6667
+  },
+  "question_results": [
+    {
+      "question_id": "Q1",
+      "relevant_ranks": [2],
+      "recall_at_3": 1.0,
+      "reciprocal_rank": 0.5,
+      "hit_at_1": false
+    },
+    {
+      "question_id": "Q2",
+      "relevant_ranks": [1],
+      "recall_at_3": 1.0,
+      "reciprocal_rank": 1.0,
+      "hit_at_1": true
+    },
+    {
+      "question_id": "Q3",
+      "relevant_ranks": [1],
+      "recall_at_3": 1.0,
+      "reciprocal_rank": 1.0,
+      "hit_at_1": true
+    },
+    {
+      "question_id": "Q4",
+      "relevant_ranks": [1],
+      "recall_at_3": 0.5,
+      "reciprocal_rank": 1.0,
+      "hit_at_1": true
+    },
+    {
+      "question_id": "Q5",
+      "relevant_ranks": [3],
+      "recall_at_3": 1.0,
+      "reciprocal_rank": 0.3333,
+      "hit_at_1": false
+    },
+    {
+      "question_id": "Q6",
+      "relevant_ranks": [1],
+      "recall_at_3": 1.0,
+      "reciprocal_rank": 1.0,
+      "hit_at_1": true
+    }
+  ],
+  "notes": "Corrected relevance labels. Q4 has two known relevant chunks, but only one was retrieved in the top 3."
+}
